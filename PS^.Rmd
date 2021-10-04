@@ -1,0 +1,54 @@
+---
+title: "PS6"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list = ls())
+```
+
+
+A)
+```{r}
+A = cbind(c(.97,0,.03), c(.05,.9,.05), c(.1,.05,.85))
+
+(eig = eigen(A))
+```
+
+B) 
+```{r}
+v1 = eig$vectors[,1]
+v2 = eig$vectors[,2]
+v3 = eig$vectors[,3]
+
+l1 = eig$values[1]
+l2 = eig$values[2]
+l3 = eig$values[3]
+```
+
+```{r}
+l1 * v1 - A %*% v1
+l2 * v2 - A %*% v2
+l3 * v3 - A %*% v3
+```
+
+This shows that each $v$ is an eigen vector of value $\lambda$ because $Av = \lambda v$ therefore $Av - \lambda v = 0$, which it does.
+
+C)
+```{r}
+P = cbind(v1,v2,v3)
+PI = solve(P)
+D = PI %*% A %*% P
+D
+```
+
+
+
+
+
+
+
+
+

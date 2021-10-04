@@ -1,0 +1,194 @@
+---
+title: "Russia Centrality"
+author: "Math 236"
+date: "10/07/2020"
+output: html_document
+---
+
+```{r,message=FALSE}
+## Load package
+library(igraph)
+```
+
+Russian historians often attribute the dominance and rise to power of Moscow to its strategic position on medieval trade routes. Others argue that sociological and political factors aided Moscow's rise to power, and thus Moscow did not rise to power strictly because of its strategic location on the trade routes. The figure below shows the major cities and trade routes of medieval Russia.
+
+![Russia Network](https://www.dropbox.com/s/pj2ytl6nl0nuuqj/MedievalRussia.png?dl=1)
+
+
+
+```{r fig.height=8, fig.width=8, echo=FALSE}
+RusCity = c("Novgorod", "Vitebsk", "Smolensk", "Kiev", "Chernikov",
+"Novgorod Severskij", "Kursk", "Bryansk", "Karachev", "Kozelsk",
+"Dorogobusch", "Vyazma", "A", "Tver", "Vishnij Totochek", "Ksyatyn",
+"Uglich", "Yaroslavl", "Rostov", "B", "C", "Suzdal", "Vladimir",
+"Nizhnij Novgorod", "Bolgar", "Isad'-Ryazan", "Pronsk", "Dubok",
+"Elets", "Mtsensk", "Tula", "Dedoslavl", "Pereslavl", "Kolomna",
+"Moscow", "Mozhaysk", "Dmitrov", "Volok Lamskij", "Murom")
+A = rbind(c(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), c(1, 0, 
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), c(0, 1, 0, 1, 0, 0, 
+    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), c(0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0), c(0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0), c(0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0), c(0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0), c(0, 0, 
+    0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), c(0, 0, 0, 0, 0, 0, 
+    1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 
+    0, 1, 0, 0, 0, 0, 0), c(0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 
+    0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), c(0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0), c(1, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 1, 0, 1, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), c(0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), c(0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 
+    0, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    1), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), c(0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1), c(0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 
+    0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 
+    0, 0, 0, 0, 0, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0), c(0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0), c(0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0), c(0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
+    1, 0, 1, 0, 0, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 
+    0, 0, 0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 
+    0), c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0), c(0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0), c(0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+g=graph_from_adjacency_matrix(A,mode='undirected')
+V(g)$label = RusCity
+# Plot network
+plot(g)
+```
+
+This network includes 39 cities. Here compute *degree centrality*
+
+```{r}
+v=rep(1,nrow(A)) # all 1s vector
+d = A %*% v  # degrees
+u=d/sum(d)   # proportion of degres
+cbind(d,u) # show d and u together side-by-side in a matrix
+```
+
+
+Here we size each vertex according to the vector $u.$ The larger vertices have more edges connected to them.
+```{r fig.height=8, fig.width=8, echo=FALSE}
+plot(g, vertex.size = 600*u,vertex.label.cex=0.5)
+```
+
+And we can sort the vertices by degree
+```{r}
+df = data.frame(d) #We need to convert this vector to a data frame in order to add row names
+rownames(df)=RusCity
+ii=order(d,decreasing=TRUE)
+df2 = data.frame(df[ii,])
+rownames(df2) = RusCity[ii]
+df2
+```
+
+Eigenvector centrality
+
+```{r}
+B = A + diag(nrow(A))
+B
+```
+
+```{r}
+v0 = rep(1,nrow(B))
+v1 = B %*% v0
+v2 = B %*% v1
+v3 = B %*% v2
+cbind(v0,v1,v2,v3)
+```
+
+```{r}
+N = 10 
+X = matrix(0,nrow=nrow(B),ncol=N+1)
+X[,1] = rep(1,nrow(B))
+for (i in 2:(N+1)) {  
+   X[,i] = A %*%  X[,i-1]
+}
+```
+
+```{r}
+N = 10 
+X = matrix(0,nrow=nrow(B),ncol=N+1)
+X[,1] = rep(1,nrow(B))
+for (i in 2:(N+1)) {  
+   X[,i] = A %*%  X[,i-1]
+   X[,i] = X[,i]/sum(X[,i])
+}
+X 
+```
+```{r}
+N = 1000 
+w = rep(1,nrow(B))
+for (i in 2:(N+1)) {  
+   w = A %*%  w
+   w = w/sum(w)
+}
+w
+```
+```{r}
+eigen(B)
+```
+```{r}
+vecs = eigen(A)$vectors
+v1 = vecs[,1]
+v1 = v1/sum(v1)
+cbind(w,v1)
+```
+```{r fig.height=6, fig.width=6, echo=FALSE}
+plot(g, vertex.size = 400*v1,vertex.label.cex=0.5)
+```
+
+```{r}
+df = data.frame(v1) #We need to convert this vector to a data frame in order to add row names
+rownames(df)=RusCity
+ii=order(v1,decreasing=TRUE)
+df2 = data.frame(df[ii,])
+rownames(df2) = RusCity          [ii]
+df2
+```
+

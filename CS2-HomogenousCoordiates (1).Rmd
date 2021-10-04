@@ -1,0 +1,186 @@
+---
+title: 'CP2: Homogeneous Coordinates'
+author: "Joe Margolis"
+date: "10/4/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+You should each provide your own solution to this, but I encourage you to talk it over with your working groups. You should turn in a knitted .html file.
+
+Here is a plot of my house. You will need to run this chunk of code each time you re-start R to get the house back in memory.
+
+```{r,fig.height=4,fig.width=4}
+house = cbind(c(0,0), c(0,3/4), c(1/2,3/4), c(1/2,0), c(1,0), c(1,1), c(5/4,1), c(0,2), c(-5/4,1), c(-1,1), c(-1,0), c(0,0));
+plot(house[1,],house[2,],type="n",xlim=c(-5,5),ylim=c(-5,5),xlab="x",ylab="y")
+polygon(house[1,], house[2,], col = "gray", border = "blue")
+```
+
+### Linear Transformations
+
+First we will try out some linear transformations in the plane on my house.
+
+
+Here I *rotate* my house by pi/3 radians. Observe that I apply the matrix `A` to the house, call it `house2` and plot both the orignal house and the new house in the same plot.
+
+```{r,fig.height=4,fig.width=4}
+plot(house[1,],house[2,],type="n",xlim=c(-5,5),ylim=c(-5,5),xlab="x",ylab="y")
+A = cbind(c(cos(pi/3),sin(pi/3)),c(-sin(pi/3),cos(pi/3)))  # define A
+A # display A
+house2 = A %*% house
+polygon(house[1,], house[2,], col = "gray", border = "blue")
+polygon(house2[1,], house2[2,], col = "pink", border = "black")
+```
+
+And now I rotate it back to its original position. The inverse in this case is rotation by -pi/3.
+
+```{r,fig.height=4,fig.width=4}
+plot(house[1,],house[2,],type="n",xlim=c(-5,5),ylim=c(-5,5),xlab="x",ylab="y")
+Ainv = cbind(c(cos(-pi/3),sin(-pi/3)),c(-sin(-pi/3),cos(-pi/3)))  # A inverse 
+Ainv # display A inverse
+house3 = Ainv %*% house2
+polygon(house2[1,], house2[2,], col = "pink", border = "black")
+polygon(house3[1,], house3[2,], col = "green", border = "black")
+```
+
+Now let's try reflecting the house over the line y = x. Not that by putting the assignment of A into parentheses it prints out the value of A while you are assigning it 
+
+```{r}
+(A = cbind(c(0,1),c(1,0)))
+```
+
+```{r,fig.height=4,fig.width=4}
+plot(house[1,],house[2,],type="n",xlim=c(-5,5),ylim=c(-5,5),xlab="x",ylab="y")
+house2 = A %*% house
+polygon(house[1,], house[2,], col = "gray", border = "blue")
+polygon(house2[1,], house2[2,], col = "pink", border = "black")
+```
+
+
+And now we perform the transformation that scales the house by 2 in the x-direction and by 3 in the y-direction.
+
+```{r}
+(A = cbind(c(2,0),c(0,3)))
+```
+
+
+```{r,fig.height=4,fig.width=4}
+plot(house[1,],house[2,],type="n",xlim=c(-5,5),ylim=c(-5,5),xlab="x",ylab="y")
+house2 = A %*% house
+polygon(house[1,], house[2,], col = "gray", border = "blue")
+polygon(house2[1,], house2[2,], col = "pink", border = "black")
+```
+
+Here we perform the transformation that sends  e1 to (-1,1/2) and e2 to (2,-1). Notice that they are the same line and the transformation projects the house onto this line.
+
+```{r,fig.height=4,fig.width=4}
+(A = cbind(c(-1,1/2),c(2,-1)))
+plot(house[1,],house[2,],type="n",xlim=c(-5,5),ylim=c(-5,5),xlab="x",ylab="y")
+house2 = A %*% house
+polygon(house[1,], house[2,], col = "gray", border = "blue")
+polygon(house2[1,], house2[2,], col = "pink", border = "black")
+```
+
+Finally, suppose that we wish to perform the transformation that reflects over the y-axis, then rotates by pi/2, and finally scales the x-direction by 2 and the y-direction by 3 in that order. You can do this as three matrices that you multiply together.
+
+The matrix A:
+```{r,fig.height=4,fig.width=4}
+scale = cbind(c(2,0),c(0,3))
+rot = cbind(c(cos(pi/2),sin(pi/2)),c(-sin(pi/2),cos(pi/2)))
+reflect = cbind(c(-1,0),c(0,1))
+A = scale %*% rot %*% reflect
+
+plot(house[1,],house[2,],type="n",xlim=c(-5,5),ylim=c(-5,5),xlab="x",ylab="y")
+house2 = A %*% house
+polygon(house[1,], house[2,], col = "gray", border = "blue")
+polygon(house2[1,], house2[2,], col = "pink", border = "black")
+```
+
+
+
+### Homogeneous Coordinates
+
+As discussed in the bonus video, we an also accomplish translation by first embedding the xy plane $\mathbb{R}^2$ into the plane $z = 1$ in $\mathbb{R}^3$. We then translate in $\mathbb{R}^3$, but when we plot, we use only the first two coordinates.
+
+In this example we rotate by pi/3 and we translate by 2.5 units in the x-axis and 2.0 units in the y-axis.
+
+```{r,fig.height=5,fig.width=5}
+house = cbind(c(0,0,1), c(0,3/4,1), c(1/2,3/4,1), c(1/2,0,1), c(1,0,1), c(1,1,1), c(5/4,1,1), c(0,2,1), c(-5/4,1,1), c(-1,1,1), c(-1,0,1), c(0,0,1));
+plot(house[1,],house[2,],type="n",xlim=c(-5,5),ylim=c(-5,5),xlab="x",ylab="y")
+t = pi/3
+rot = cbind(c(cos(t),sin(t),0),c(-sin(t),cos(t),0),c(0,0,1)) 
+rot
+translate = cbind(c(1,0,0),c(0,1,0),c(2.5,2.0,1))
+translate
+A =   translate %*% rot
+A # display A
+house2 = A %*% house
+polygon(house[1,], house[2,], col = "gray", border = "blue")
+polygon(house2[1,], house2[2,], col = "pink", border = "black")
+```
+
+### Assignment
+Your assignment is to produce the picture shown on the moodle page by rotating, reflecting, scaling, and translating the house in multiple ways and showing them in the same image (by using multiple instances of `polygon` command).
+
+
+
+```{r}
+plot(house[1,],house[2,],type="n",xlim=c(-3,3),ylim=c(-3,3),xlab="x",ylab="y")
+polygon(house[1,], house[2,], col = "gray", border = "blue")
+tslate = cbind(c(-.5,0,0), c(0,-.5,0), c(-.5,0,1))
+houseTwo = tslate %*% house
+polygon(houseTwo[1,], houseTwo[2,], col = "green", border = "blue")
+```
+
+```{r}
+A = cbind(c(-2/10,0,0), c(0,3/8,0), c(.25,0,1))
+houseThree = A %*% house
+
+plot(house[1,],house[2,],type="n",xlim=c(-3,3),ylim=c(-3,3),xlab="x",ylab="y")
+polygon(house[1,], house[2,], col = "gray", border = "blue")
+polygon(houseThree[1,], houseThree[2,], col = "red", border = "blue")
+```
+
+
+
+```{r}
+plot(house[1,],house[2,],type="n",xlim=c(-3,3),ylim=c(-3,3),xlab="x",ylab="y")
+polygon(house[1,], house[2,], col = "gray", border = "blue")
+
+t1 = atan(1/1.25)
+rot = cbind(c(cos(t1),sin(t1),0),c(-sin(t1),cos(t1),0),c(0,0,1))
+tslate1 = cbind(c(1,0,0), c(0,1,0), c(-.5,1.6,1))
+
+A = cbind(c(.5,0,0), c(0,.5,0), c(-.5,1.6,1))
+
+houseFour = A %*% rot %*% house
+
+polygon(houseFour[1,], houseFour[2,], col = "gold", border = "blue")
+```
+
+```{r}
+plot(house[1,],house[2,],type="n",xlim=c(-3,3),ylim=c(-3,3),xlab="x",ylab="y")
+polygon(house[1,], house[2,], col = "gray", border = "blue")
+
+t2 = -atan(1/1.25)
+rot = cbind(c(cos(t2),sin(t2),0),c(-sin(t2),cos(t2),0),c(0,0,1))
+tslate2 = cbind(c(1,0,0), c(0,1,0), c(-.5,1.6,1))
+
+A = cbind(c(.5,0,0), c(0,.5,0), c(.5,1.6,1))
+
+houseFive = A %*% rot %*% house
+
+polygon(houseFive[1,], houseFive[2,], col = "cyan", border = "blue")
+```
+
+```{r}
+plot(house[1,],house[2,],type="n",xlim=c(-3,3),ylim=c(-3,3),xlab="x",ylab="y")
+polygon(house[1,], house[2,], col = "gray", border = "blue")
+polygon(houseTwo[1,], houseTwo[2,], col = "green", border = "black")
+polygon(houseThree[1,], houseThree[2,], col = "red", border = "blue")
+polygon(houseFour[1,], houseFour[2,], col = "gold", border = "blue")
+polygon(houseFive[1,], houseFive[2,], col = "cyan", border = "blue")
+```
+
+

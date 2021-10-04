@@ -1,0 +1,107 @@
+---
+title: "PS7-9.Rmd"
+author: "Joe Margolis"
+date: "10/15/2020"
+output: html_document
+---
+
+```{r}
+require(pracma)
+```
+
+This is Problem #9 on PS7. The last problem of the course! In it we find a least-squares fit of a parabola to some data. Here is the data, plotted together with the *wrong* parabola. I just guessed.
+
+```{r}
+x = c(1,2,3,4,5)
+y = c(15, 8, 12, 25, 25)
+plot(x,y,pch=19,cex=1,col="red",xlim=c(0,6),ylim=c(0,30),xlab='x',ylab='y')
+xx = seq(0,6,len=100)
+points(xx, 10 - 4*xx  + 1.5 *xx^2,type='l',col="blue") #the coefficients I used here are wrong
+```
+
+The parabola we want to find is of the form $f(x) = a_0 + a_1 x + a_2 x^2$. We'd like the points to all be on he parabla. So, we'd like to solve the following equations:
+$$
+\begin{align*}
+a_0 + a_1*1 + a_2*1^2 &= 15 \\
+a_0 + a_1*2 + a_2*2^2 &= 8 \\
+a_0 + a_1*3 + a_2*3^2 &= 12 \\
+a_0 + a_1*4 + a_2*4^2 &= 25 \\
+a_0+ a_1*5 + a_2*5^2 &= 25 \\
+\end{align*}
+$$
+This is the same as the matrix equation
+$$
+\begin{bmatrix}
+1 & 1 & 1 \\
+1 & 2 & 4 \\
+1 & 3 & 9 \\
+1 & 4 & 16 \\
+1 & 5 & 25 \\
+\end{bmatrix}
+\begin{bmatrix} a_0 \\ a_1 \\ a_2 \end{bmatrix}
+= \begin{bmatrix} 15 \\ 8 \\ 12 \\ 25 \\ 25 \end{bmatrix}.
+$$
+If we try to solve this we see that it is inconsistent:
+```{r}
+A = cbind(x^0,x^1,x^2)
+(Ay = cbind(A,y))
+rref(Ay)
+```
+
+You will save the day by finding a least squares solution!
+
+(i)  First, up and solve the normal equations $A^T A x = A^T y$.
+
+```{r}
+ATA = t(A) %*% A
+ATA
+ATy = t(A) %*% y
+ATy
+norm = cbind(ATA,ATy)
+norm
+rref(norm)
+```
+$\x1 = 17.4$
+$\x2 = -6.157143$
+$\x3 = 1.642857$
+
+(ii)  Then find the projected value $\hat y = A \hat x$.
+
+```{r}
+xvals = cbind(17.400000,-6.157143,1.642857)
+xvals
+yhat = A %*% t(xvals)
+yhat
+```
+
+(iii)  Then find the residual
+```{r}
+r = y - yhat
+r
+```
+
+(iv) Then find the length of the residual
+```{r}
+n1 = r[1,] %*% r[1,]
+n2 = r[2,] %*% r[2,]
+n3 = r[3,] %*% r[3,]
+n4 = r[4,] %*% r[4,]
+n5 = r[5,] %*% r[5,]
+j = n1+n2+n3+n4+n5
+lr = sqrt(j)
+lr
+```
+
+(v) Now fix up the plot. You should only need to change the coordinates on polynomial which right now are incorrectly set at 10, -4, and 1.5.
+```{r}
+plot(x,y,pch=19,cex=1,col="red",xlim=c(0,6),ylim=c(0,30),xlab='x',ylab='y')
+xx = seq(0,6,len=100)
+points(xx, 17.400000 - 6.157143*xx  + 1.642857 *xx^2,type='l',col="blue") #the coefficients I used here are wrong
+```
+
+(vi) Explain how you "see" $y$, $\hat y$, and $r$ in your plot.
+
+$y$ is seen in the plot through the y values of each red dot in the plot
+$\hat y$ is seen in the plot as y values of points on the line of best fit that are the same x value as the red dot at the corresponding x value
+$r$ is show by the distance in y value from that point along the line previously previously deemed $\hat y$ and the red dot that has the corresponding x-value
+

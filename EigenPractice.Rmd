@@ -1,0 +1,37 @@
+---
+title: "Eigen Vectors"
+author: "Joe Margolis"
+date: "10/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+A = cbind(c(1/2,1/2,0),c(1/4,1/4,1/2),c(1/3,1/3,1/3))
+A
+
+vecs = eigen(A)$vectors
+(v = vecs[,1])
+B = A %*% v - v
+B
+```
+```{r}
+zapsmall(A %*% vecs)
+```
+
+```{r}
+require(pracma)
+rref(A - diag(nrow(A)))
+```
+```{r}
+J = cbind(c(7,-4),c(2,1))
+J
+M = sqrtm(J)
+```
+```{r}
+M
+```
+

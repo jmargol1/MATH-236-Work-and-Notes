@@ -1,0 +1,105 @@
+---
+title: "Spotted Owls"
+author: "Math 236 - Fall 2020 - Module 1"
+date: "10/2/2020"
+output: html_document
+---
+
+### Dynamical Systems and Spotted Owls
+
+One recurring application we will look at is a dynamical system. In these examples $A$ is a square $n \times n$ matrix and $x_0 \in \mathbb{R}^n$ is an $n$-dimensional vector. We think of $x_0$ as the value of our vector at time $t = 0$, and the matrix $A$ is the transition matrix from one time period to the next. So, 
+$$
+x_1 = A x_0 \\
+x_2 = A x_1 \\
+\vdots \\
+x_n = A x_{n-1}
+$$
+In this way the vector  $x_n$ is recursively derived from $x_n$ by the matrix $A$. This sequence of vectors $x_0, x_1, \ldots, x_n$ connecte by $A$ is called a *dynamical system*.
+
+**Example**
+
+This example is the opening example in Chapter 5 of the textbook on page 265. It comes from a 1992 study of the northern spotted owl, which was threatened with extinction due to the loss of forest habitat due to loggin.
+
+The vector
+$$
+x_n = \begin{bmatrix} j_n \\ s_n \\ a_n \end{bmatrix}
+$$
+is an *age-stage* vector in which $j_n, s_n$, and $a_n$ are the number of female owls in the juvenile (up to 1 year), subadult (1-2 year), and adult (over 2 year) age groups in year $n$.
+
+The dynamics that take us from one year to the next is given by, the recursive relation $x_{n+1} = A x+n$, where $A$ is the matrix shown here,
+$$
+\begin{bmatrix} j_{n+1} \\ s_{n+1} \\ a_{n+1} \end{bmatrix}
+= 
+\begin{bmatrix} 0 & 3 & 1 \\ 0.4 & 0 & 0 \\ 0 & 0.5 & 0 \end{bmatrix}
+\begin{bmatrix} j_n \\ s_n \\ a_n \end{bmatrix}
+$$
+**Q1**. Multiply this matrix-vector product out, *by hand*, and write it as a system of equations here
+$$
+j_{n+1} =  0.33a_n    \\
+s_{n+1} =   0.18j_n   \\
+a_{n+1} =  0.71s_n + 0.94a_n    \\
+$$
+**Q2**. Then use this computation to explain what the values of the nonzero entries of the matrix represent. That, is 0.33 represents....., 0.18 represents, ...., and so on.
+
+To see the dynamics play out over time, we'd like to generate the sequence of vectors in this dynamical system. Suppose that the original population of owls is distributed into age groups by
+$$
+x_0 = \begin{bmatrix} 1000 \\ 2200 \\ 3000 \end{bmatrix}
+$$
+**Q3**. Then, "by hand", we can compute the population in the next few time periods
+```{r}
+(A = cbind(c(0,0.4,0),c(3,0,0.5),c(1,0,0)))
+(x0 = c(1000,2200,3000))
+x1 = A %*% x0
+x1
+```
+Observe that this is the wrong matrix. You should fix it up.
+
+**Q4**. Compute $x_1, x_2, x_3, x_4$ by appropriately multiplying matrices and vectors.
+
+```{r}
+x2 = A %*% x1
+x2
+x3 = A %*% x2
+x3
+x4 = A %*% x3
+x4
+```
+
+**Q5**. We don't want to have to do this by hand over and over again, so we will use a `for` loop! As shown below. Discuss this code with your team. Make sure you understand what is going on. Try changing the 10 to other values, like 4 (and compare with Q4) or 100 or 1000.
+
+```{r}
+v = x0
+for (i in 1:20) {
+  v = A %*% v
+  }
+v
+```
+
+
+**Q6**. It is nice to store the values of $x_i$ along the way, so that we can see the dynamics of the problem happening and not just see the final value. We can do this using the code below. Again, try it now with your correct matrix $A$ and discuss the code among your team. Where the comments are, write out what is going on in the code so that when you come back to it later it makes sense.
+
+```{r}
+N = 10  # 10 years
+X = matrix(0,nrow=nrow(A),ncol=N+1) # comment here
+X[,1] = x0 # comment here
+for (i in 2:(N+1)) {  # comment here
+  X[,i] = A %*% X[,i-1] # comment here
+}
+X # comment here
+```
+
+**Q7**. We can plot the data, Check it out. Does it match the claim that the owls are threatened with extinction?
+```{r}
+tot = X[1,] + X[2,] + X[3,]
+t = seq(1,N+1)
+plot(t,X[1,],type='l',col='blue',ylim=c(0,1000),ylab="population",xlab="year",main="Spotted Owl Population")
+points(t,X[1,],col='blue',pch=20,cex=.8)
+lines(t,X[2,],col='orange')
+points(t,X[2,],col='orange',pch=20,cex=.8)
+lines(t,X[3,],col='red')
+points(t,X[3,],col='red',pch=20,cex=.8)
+points(t,tot,col='black',pch=20,cex=.8)
+lines(t,tot,col='black')
+legend(8, 1050, legend=c("juvenile", "subadults", "adults","total"), col=c('blue','orange','red','black'), lty=1)
+```
+

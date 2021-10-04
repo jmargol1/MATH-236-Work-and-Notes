@@ -1,0 +1,104 @@
+---
+title: "US Senate"
+author: "Joe Margolis"
+date: "10/13/2020"
+output: html_document
+---
+
+First we load in the `pracma` pacakage once again, because it contains the command `dot` that computes the dot product between two vectors.
+```{r}
+require('pracma')
+```
+
+Now we read in a csv file of voting data of the senate in the 109th US Congress.You need to download this file from the PS7 link and re-upload it into the Files section of Rstudio.
+```{r}
+sen<-read.csv("us_sen_voting_109.csv")  # read in the data
+sen[,1:15] # display only the first 15 columns
+```
+
+Extract a matrix X of the votes and remove resolutions with unanimous votes. The matrix X is 99 x 42. There are 99 senators (one of the NJ senators had resigned during this time) and 42 remaining resolutions.
+```{r}
+X1<-as.matrix(sen[,4:49]) # convert the votes to a matix
+X<-X1[,colSums(X1)!=99]  # remove the unanimous votes
+dim(X)
+head(X)  # shows the top part of the matrix (first 6 rows)
+```
+Get the list of senator names and their index in the matrix.
+```{r}
+senators = sen[,1:3]
+senators$index = seq(1,99)
+senators
+```
+
+As you can see Joe Biden (D-DE) is the 8th senator in the matrix. We can extract his row as follows. This also computes the dot product of Biden's votes with itself to illustrate how the dot product works.
+```{r}
+biden = X[8,]
+biden
+dot(biden,biden)
+```
+### Question 3a
+
+Dotting a senator's votes by itself tells us how many votes that senator placed out of the 49 possible resolutions 
+
+### Question 3b
+
+Dotting a senators votes with a different senators votes tell us a value that reveals the difference in how many resolutions the two senators voted the same way on and how many they voted differently, only for the resolutions where both senators placed a vote
+
+### Question 3c
+Find the cosine similarity between (i) biden and mcconnell, (ii) biden and clinton, (iii) biden and obama, (iv) biden and and mccain.
+
+```{r}
+biden = X[8,]
+mcconnell = X[69,]
+clinton = X[21,]
+obama = X[75,]
+mccain = X[68,]
+bidenMcconnell <- (biden %*% mcconnell)/sqrt(dot(biden, biden)) %*% sqrt(dot(mcconnell, mcconnell))
+bidenClinton <- (biden %*% clinton)/sqrt(dot(biden, biden)) %*% sqrt(dot(clinton,clinton))
+bidenObama <- (biden %*% obama)/sqrt(dot(biden, biden)) %*% sqrt(dot(obama,obama))
+bidenMccain <- (biden %*% mccain)/sqrt(dot(biden, biden)) %*% sqrt(dot(mccain, mccain))
+bidenMcconnell
+bidenClinton
+bidenObama
+bidenMccain
+```
+
+### Question 3d
+Find the cosine simiarlity between two (or *more*) other senators (e.g., something of interest to you).
+
+```{r}
+kennedy = X[55,]
+durbin = X[37,]
+kennedyDurbin <- (kennedy %*% durbin)/sqrt(dot(kennedy,kennedy)) %*% sqrt(dot(durbin,durbin))
+kennedyDurbin
+```
+
+### Question 3e
+The following code is helpful in doing Question 3e. It goes through and makes each row of the matrix X a unit vector and calls it a new matrix Y. There is a nice way to use it to find the cosine similarity between biden and all of the other senators in one matrix-vector command (you need to figure that out). Remember that the rows of X and Y are the votes of each senator.
+```{r}
+Y = X
+for (i in 1:99) {
+  Y[i,] = X[i,]/sqrt(dot(X[i,],X[i,]))
+}
+ubiden = Y[8,]
+ubiden
+dot(ubiden,ubiden)
+
+for (i in 1:99) {
+  Y[8,] = X[8,] %*% X[i,]/sqrt(dot(X[8,], X[8,]) %*% dot(X[i,], X[i,]))
+} 
+Y
+max(Y)
+which.max(Y)
+senators$Name[31]
+min(Y)
+which.min(Y)
+senators$Name[53]
+
+#Check:
+demint = X[31,]
+(biden %*% demint)/sqrt(dot(biden,biden)) %*% sqrt(dot(demint,demint))
+jeffords <- X[53,]
+(biden %*% jeffords)/sqrt(dot(biden,biden)) %*% sqrt(dot(jeffords, jeffords))
+```
+
